@@ -6,27 +6,52 @@ const { APIfeatures } = require("../lib/features")
 
 const hotelCtrl = {
     searchHotel: async (req, res) => {
-        try {
-            // const hotels=await Hotel.find({$or:[
-            //     {
-            //         address:{$regex:req.query.address}
-            //     },{
-            //         hotel_name:{$regex:req.query.hotel_name}
-            //     }
-            // ]}).limit(100).select("hotel_name address price hotel_images hotel_info hotel_facilities hotel_reviews");
 
-            const hotels = await Hotel.find({ address: { $regex: req.query.address } }).limit(100).select("hotel_name address price hotel_images hotel_info hotel_facilities hotel_reviews");
-            
-            if (!hotels)
+        // try {
+        // const hotels=await Hotel.find({$or:[
+        //     {
+        //         address:{$regex:req.query.address}
+        //     },{
+        //         hotel_name:{$regex:req.query.hotel_name}
+        //     }
+        // ]}).limit(100).select("hotel_name address price hotel_images hotel_info hotel_facilities hotel_reviews");
+
+        // const hotels = await Hotel.find({ address: { $regex: req.query.address } }).limit(100).select("hotel_name address price hotel_images hotel_info hotel_facilities hotel_reviews");
+
+        // const hotels = await Hotel.find({ address: { $regex: req.query.address } })
+
+
+        // if (!hotels)
+        //     return res.status(404).json({
+        //         success: "failed",
+        //         message: "No hotels found"
+        //     })
+        // res.json({
+        //     status: "success",
+        //     count: hotels.length,
+        //     hotels
+        // })
+
+        try {
+
+            const allHotels = Hotel.find({ address: { $regex: req.query.address } })
+     
+            const features = new APIfeatures(allHotels, req.query).paginating().sorting().searching().filtering()
+
+            const result = await Promise.allSettled([
+                features.query,
+                Hotel.countDocuments() // count number of hotels
+            ])
+            const hotels = result[0].status === "fulfilled" ? result[0].value : [];
+            const count = result[1].status === "fulfilled" ? result[1].value : 0;
+
+             if(hotels.length===0)
                 return res.status(404).json({
-                    success: "failed",
-                    message: "No hotels found"
+                    status:"failed",
+                    message:"No hotel found"
                 })
-            res.json({
-                status: "success",
-                count: hotels.length,
-                hotels
-            })
+            
+            res.json({ status: 'success', "total":count,"found":hotels.length, hotels });
         } catch (error) {
             return res.status(500).json({ status: "failed", msg: error.message })
         }
@@ -91,7 +116,7 @@ const hotelCtrl = {
 
 
                 const newHotel = new Hotel({
-                    hotel_name, address, phone, hotel_email, pan_no, price, hotel_images, hotel_info, hotel_facilities, hotel_policies,user:req.user._id
+                    hotel_name, address, phone, hotel_email, pan_no, price, hotel_images, hotel_info, hotel_facilities, hotel_policies, user: req.user._id
                 })
                 await newHotel.save();
 
@@ -214,7 +239,7 @@ const hotelCtrl = {
             const features = new APIfeatures(Hotel.find({ _id: { $in: req.user.favourites } }), req.query).paginating();
 
             const favouriteHotels = await features.query.sort("-createdAt");
-                // console.log(favouriteHotels);
+            // console.log(favouriteHotels);
             res.json({
                 status: "success", favouriteHotels,
                 count: favouriteHotels.length
@@ -236,7 +261,7 @@ const hotelCtrl = {
                 }
             })
         } catch (error) {
-            return res.status(500).json({ status: "failed", msg: error.message })  
+            return res.status(500).json({ status: "failed", msg: error.message })
         }
     }
 }
