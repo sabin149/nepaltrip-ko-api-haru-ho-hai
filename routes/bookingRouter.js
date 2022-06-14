@@ -1,0 +1,11 @@
+const router=require('express').Router();
+const bookingCtrl=require("../controllers/bookingController")
+const auth=require("../middleware/auth")
+
+router.post("/booking",auth,bookingCtrl.createBooking)
+router.get("/booking",auth,bookingCtrl.getBookings)
+router.get("/booking/:id",auth,bookingCtrl.getBooking)
+router.patch("/booking/:id",auth,bookingCtrl.updateBooking)
+router.delete("/booking/:id",auth,bookingCtrl.deleteBooking)
+
+module.exports=router;

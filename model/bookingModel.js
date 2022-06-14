@@ -2,16 +2,11 @@ const mongoose=require("mongoose")
 
 const bookingSchema = new mongoose.Schema({
     room:{
-        type: mongoose.Types.ObjectId,
+        type: mongoose.Types.ObjectId,ref:"room"
     },
     user:{ type: mongoose.Types.ObjectId, ref: 'user' },
     hotel:{
-        type: mongoose.Types.ObjectId,
-    },
-
-    name:{
-        type: String,
-        required: true,
+        type: mongoose.Types.ObjectId,ref:"hotel"
     },
     start_date:{
         type: Date,
@@ -59,6 +54,7 @@ const bookingSchema = new mongoose.Schema({
     payment_type:{
         type: String,
         required: true,
+        default:"khalti"
     },
 
 })

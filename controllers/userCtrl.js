@@ -2,6 +2,11 @@ const Users = require('../model/userModel')
 const bcrypt = require("bcrypt")
 const jwt = require("jsonwebtoken")
 const transporter = require('../config/emailConfig');
+const Rooms = require('../model/roomModel');
+const Hotels = require('../model/hotelModel');
+const Bookings = require('../model/bookingModel');
+const Reviews = require('../model/reviewModel');
+
 
 const userCtrl = {
     getUsers: async (req, res) => {
@@ -26,9 +31,19 @@ const userCtrl = {
     },
     getUser: async (req, res) => {
         try {
+
+            console.log(req.params);
             const user = await Users.findById(req.params.id).select('-password')
             if (!user) return res.status(400).json({ status: "failed", msg: "User does not exist." })
             res.json({ status: "success", user })
+            // const userId = await Users.findById(req.params.id).select("_id"); 
+            // const hotel = await Hotels.findOne({ userId });
+            // const room = await Rooms.findOne({ userId });
+            // const booking = await Bookings.findOne({ userId });
+            // const review = await Reviews.findOne({ userId });
+
+
+
         } catch (err) {
             return res.status(500).json({ msg: err.message })
         }
@@ -139,13 +154,23 @@ const userCtrl = {
     },
     deleteUser: async (req, res) => {
         try {
-            const user = await Users.findByIdAndDelete(req.params.id)
+            const userId = req.params.id;
+            const user = await Users.findById(userId);
             if (!user) return res.status(400).json({ status: "failed", msg: "User does not exist." })
+
+            await Users.findOneAndDelete({ _id: userId });
+            await Hotels.findOneAndDelete({ user: userId });
+            await Hotels.findOne({ user: userId });
+            await Rooms.findOneAndDelete({ user: userId });
+            await Bookings.findOneAndDelete({ user: userId });
+            await Reviews.findOneAndDelete({ user: userId });
             res.json({ status: "success", msg: "User Deleted Successfully" })
         } catch (err) {
             return res.status(500).json({ msg: err.message })
         }
     },
+
+
     changeUserRole: async (req, res) => {
         try {
             const { role } = req.body;
@@ -153,8 +178,12 @@ const userCtrl = {
                 return res.status(400).json({ status: "failed", msg: "Role field is required" })
 
             if (role === "admin" || role === "user" || role === "vendor") {
-                await Users.findByIdAndUpdate(req.params.id, { $set: { role } });
-                res.json({ status: "success", msg: `Role changed to ${role} successfully` })
+                const newUser = await Users.findByIdAndUpdate(req.params.id, { $set: { role } });
+                res.json({
+                    status: "success", msg: `Role changed to ${role} successfully`, newUser: {
+                        ...newUser._doc
+                    }
+                })
             } else {
                 res.status(400).json({ status: "failed", msg: "This role does not exist" })
             }

@@ -4,9 +4,9 @@ const Hotel = require("../model/hotelModel")
 const roomCtrl = {
     createHotelRoom: async (req, res) => {
         try {
-            const { hotelId, room_type,room_price, room_options, room_images, room_facilities, hotelUserId } = req.body
+            const { hotelId, room_type, room_price, room_options, room_images, room_facilities, hotelUserId } = req.body
 
-            if (hotelId && room_type && room_price&& room_options && room_facilities) {
+            if (hotelId && room_type && room_price && room_options && room_facilities) {
                 if (room_images.length === 0)
                     return res.status(400).json({ msg: "Please add your room images." })
 
@@ -52,7 +52,6 @@ const roomCtrl = {
         }
     },
     getAllHotelRooms: async (req, res) => {
-
         try {
             const features = new APIfeatures(Room.find(), req.query).paginating().sorting().searching().filtering();
 
@@ -73,18 +72,11 @@ const roomCtrl = {
     },
     getHotelRooms: async (req, res) => {
         try {
-            const features = new APIfeatures(Room.find({ hotel: req.params.id }), req.query).paginating().sorting().searching().filtering();
+            const hotelId=(await Hotel.findById(req.params.id).select("_id"));
+            console.log(hotelId);
+            const rooms = await Room.findOne({hotelId})
+            console.log(rooms);
 
-            const result = await Promise.allSettled([
-                features.query,
-                Room.countDocuments() // count number of hotels
-            ])
-
-            const rooms = result[0].status === "fulfilled" ? result[0].value : [];
-            const count = result[1].status === "fulfilled" ? result[1].value : 0;
-            res.json({ status: 'success', count, rooms });
-            // const rooms = await Room.find({ hotel: req.params.id });
-            // res.json({ status: 'success', result: rooms.length, rooms });
         } catch (error) {
             return res.status(500).json({ status: "failed", msg: error.message })
         }
@@ -99,9 +91,9 @@ const roomCtrl = {
     },
     updateHotelRoom: async (req, res) => {
         try {
-            const { room_type,room_price, room_options, room_images, room_facilities } = req.body
+            const { room_type, room_price, room_options, room_images, room_facilities } = req.body
 
-            if (room_type && room_price&& room_options && room_facilities) {
+            if (room_type && room_price && room_options && room_facilities) {
 
                 if (room_images.length === 0)
                     return res.status(400).json({ msg: "Please add your room images." })

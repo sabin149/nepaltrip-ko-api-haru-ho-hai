@@ -11,10 +11,10 @@ let transporter = nodemailer.createTransport({
         pass: process.env.EMAIL_PASS
     },
 });
-transporter.verify((err, success) => {
-    if (err) console.error(err);
-   else {console.log('Nodemailer config is correct');
-}});
+// transporter.verify((err, success) => {
+//     if (err) console.error(err);
+//    else {console.log('Nodemailer config is correct');
+// }});
 
 
  module.exports=transporter; 

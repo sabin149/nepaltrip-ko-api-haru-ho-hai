@@ -3,7 +3,7 @@ const mongoose = require("mongoose")
 const reviewSchema = new mongoose.Schema({
     review: {
         type: String,
-        required: true,
+        // required: true,
 
     },
     hotel_rating: {
@@ -11,7 +11,8 @@ const reviewSchema = new mongoose.Schema({
         // enum: ['0', '1', "2", '3', '4', '5'],
         // default: '0'
         min:1,
-        max:5
+        max:5,
+        default:5
     },
     tag: Object,
     reply: mongoose.Types.ObjectId,
