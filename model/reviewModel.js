@@ -4,7 +4,6 @@ const reviewSchema = new mongoose.Schema({
     review: {
         type: String,
         // required: true,
-
     },
     hotel_rating: {
         type: Number,

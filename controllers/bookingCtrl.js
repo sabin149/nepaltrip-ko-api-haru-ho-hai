@@ -2,7 +2,7 @@ const Hotels = require('../model/hotelModel');
 const Rooms = require('../model/roomModel');
 const Bookings = require('../model/bookingModel');
 const Users = require('../model/userModel');
-const transporter  = require('../config/emailConfig');
+// const transporter  = require('../config/emailConfig');
 const { APIfeatures } = require('../lib/features');
 
 
@@ -58,14 +58,14 @@ const bookingSCtrl = {
             })
             await booking.save();
 
-            const userEmail = await Users.findById(req.user._id).select("email");
+            // const userEmail = await Users.findById(req.user._id).select("email");
 
-            let info = await transporter.sendMail({
-                from: process.env.EMAIL_FROM,
-                to: userEmail,
-                subject: 'Password Reset Link',
-                html: `<h1>Your Bookings</h1>`
-            });
+            // let info = await transporter.sendMail({
+            //     from: process.env.EMAIL_FROM,
+            //     to: userEmail,
+            //     subject: 'Booking Link',
+            //     html: `<h1>Your Bookings</h1>`
+            // });
 
 
             return res.json({
@@ -87,7 +87,7 @@ const bookingSCtrl = {
     },
     getBookings: async (req, res) => {
         try {
-            const features = new APIFeatures(Bookings.find().populate('user').
+            const features = new APIfeatures(Bookings.find().populate('user').
                 populate('room').
                 populate('hotel'), req.query).sorting()
 
