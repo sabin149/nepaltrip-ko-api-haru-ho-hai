@@ -169,36 +169,39 @@ const reviewCtrl = {
             if (hotel_rating > 5 || hotel_rating < 1)
                 return res.status(400).json({ status: "failed", msg: "Please add valid rating" })
 
-            const reviews = await Review.findOne({ hotelId, hotelUserId });
+            const hotelReview = await Review.findOne({ hotelId, hotelUserId, user: req.user._id });
 
-            if (!reviews) {
-                return res.status(404).json({ status: "failed", msg: 'Review not found' });
+            if (hotelReview) {
+                const newReview = await Review.findOneAndUpdate(
+                    { _id: hotelReview._id },
+                    { hotel_rating },
+                    { new: true }
+                );
+                res.json({
+                    status: "success", msg: 'Rating added', newReview
+                });
             }
 
-            const hotel = await Hotel.findById({ _id: hotelId });
-            if (!hotel)
-                return res.status(404).json({ status: "failed", msg: 'Hotel not found' });
+            if (!hotelReview) {
+                const review = new Review({
+                    user: req.user._id,
+                    hotel_rating,
+                    hotelId,
+                    hotelUserId
+                })
 
-            await Hotel.findOneAndUpdate(
-                { _id: hotelId },
-                {
-                    $push: { hotel_reviews: reviews._id },
-                },
-                { new: true }
-            );
-            const newReview = await Review.findOneAndUpdate(
-                { _id: reviews._id },
-                { hotel_rating },
-                { new: true }
-            );
+                await review.save();
 
-            res.json({
-                status: "success", msg: 'Review created successfully', newReview: {
-                    ...newReview._doc
-                }
-            });
+                await Hotel.findOneAndUpdate(
+                    {
+                        _id: review.hotelId
+                    },
+                    { $push: { hotel_reviews: review._id } })
 
-
+                res.json({
+                    status: "success", msg: 'Rating added', newReview: review
+                });
+            }
         } catch (error) {
             res.status(500).json({ status: "failed", msg: error.message });
         }
