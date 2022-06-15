@@ -137,35 +137,68 @@ const reviewCtrl = {
             res.status(500).json({ status: "failed", msg: error.message });
         }
     },
+    getReviewsByHotel: async (req, res) => {
+        try {
+            const features = new APIfeatures(Review.find({ hotelId: req.params.id })
+                .populate('user'),
+                req.query).sorting()
+
+            const result = await Promise.allSettled([
+                features.query,
+                Review.countDocuments()
+            ])
+
+            const reviews = result[0].status === "fulfilled" ? result[0].value : []
+
+            const count = result[1].status === "fulfilled" ? result[1].value : 0;
+
+            return res.json({
+                "status": "success",
+                count,
+                reviews
+            })
+
+        } catch (error) {
+            res.status(500).json({ status: "failed", msg: error.message });
+        }
+    },
     createRating: async (req, res) => {
         try {
-            const { hotelId, review,hotel_rating ,tag, reply, hotelUserId } = req.body;
+            const { hotelId, hotel_rating, hotelUserId } = req.body;
+
+            if (hotel_rating > 5 || hotel_rating < 1)
+                return res.status(400).json({ status: "failed", msg: "Please add valid rating" })
+
+            const reviews = await Review.findOne({ hotelId, hotelUserId });
+
+            if (!reviews) {
+                return res.status(404).json({ status: "failed", msg: 'Review not found' });
+            }
 
             const hotel = await Hotel.findById({ _id: hotelId });
             if (!hotel)
                 return res.status(404).json({ status: "failed", msg: 'Hotel not found' });
 
-            if (reply) {
-                const review = await Review.findById(reply);
-                if (!review)
-                    return res.status(404).json({ status: "failed", msg: 'Review not found' });
-            }
-            const newReview = new Review({
-                user: req.user._id,
-                review,
-                hotel_rating,
-                tag,
-                reply,
-                hotelId,
-                hotelUserId
-            })
             await Hotel.findOneAndUpdate(
                 { _id: hotelId },
-                { $push: { hotel_reviews: newReview._id } },
-                { new: false }
+                {
+                    $push: { hotel_reviews: reviews._id },
+                },
+                { new: true }
+            );
+            const newReview = await Review.findOneAndUpdate(
+                { _id: reviews._id },
+                { hotel_rating },
+                { new: true }
             );
 
-            res.json({ status: "success", msg: 'Review created successfully', newReview });
+            res.json({
+                status: "success", msg: 'Review created successfully', newReview: {
+                    ...newReview._doc
+                }
+            });
+
+
         } catch (error) {
             res.status(500).json({ status: "failed", msg: error.message });
         }

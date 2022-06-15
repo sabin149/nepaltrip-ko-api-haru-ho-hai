@@ -3,7 +3,8 @@ const reviewCtrl = require('../controllers/reviewCtrl');
 const auth = require('../middleware/auth');
 const authAdmin = require('../middleware/auth-admin');
 
-router.get('/review', auth,authAdmin, reviewCtrl.getReviews);
+router.get('/review', auth, reviewCtrl.getReviews);
+router.get('/review/:id', auth, reviewCtrl.getReviewsByHotel);
 router.post("/review", auth, reviewCtrl.createReview)
 router.patch("/review/:id", auth, reviewCtrl.updateReview)
 router.delete("/review/:id", auth, reviewCtrl.deleteReview)

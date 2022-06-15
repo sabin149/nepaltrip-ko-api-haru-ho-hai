@@ -112,7 +112,7 @@ const userCtrl = {
                             <a href="${link}">Click Here</a> to Reset Your Password</h1>`
                     });
 
-                    res.status(200).json({ status: "success", msg: "Password Reset Link Sent Successfully, Check Your Mail", "info": info });
+                    res.status(200).json({ status: "success", msg: "Password Reset Link Sent Successfully, Check Your Mail",  info });
                 } else {
                     res.status(400).json({ status: "failed", msg: "Email doesn't exist" });
                 }

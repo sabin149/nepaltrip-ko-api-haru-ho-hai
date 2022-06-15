@@ -12,7 +12,7 @@ const reviewSchema = new mongoose.Schema({
         // default: '0'
         min:1,
         max:5,
-        default:5
+        default:0
     },
     tag: Object,
     reply: mongoose.Types.ObjectId,
